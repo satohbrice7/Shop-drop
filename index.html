@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
+<html lang="fr"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mon Catalogue</title>
+<title>Sybc's shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&amp;family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #12213E;
@@ -111,43 +110,43 @@
 </head>
 <body>
 
-<div id="adminBar"></div>
+<div id="adminBar"><div class="admin-bar">Mode gestion actif <button id="btnLogout">Se déconnecter</button></div></div>
 
 <div class="wrap">
   <header class="shop-head">
     <div class="head-row">
       <div>
-        <h1 class="shop-name" id="shopName">Ma Boutique</h1>
-        <p class="shop-tagline" id="shopTagline"></p>
+        <h1 class="shop-name" id="shopName">Sybc's shop</h1>
+        <p class="shop-tagline" id="shopTagline">La ref de vos accessoires stylés </p>
       </div>
-      <div class="head-actions" id="headActions"></div>
+      <div class="head-actions" id="headActions"><button class="icon-btn" aria-label="Réglages de la boutique">⚙</button></div>
     </div>
   </header>
 
-  <div id="filterBar" class="filter-bar"></div>
+  <div id="filterBar" class="filter-bar"><button class="pill active">Tous</button><button class="pill">Promotions</button></div>
   <div class="search-row">
     <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un produit...">
   </div>
 
-  <div id="grid" class="grid"></div>
+  <div id="grid" class="grid"><div class="empty" style="grid-column: 1/-1;"><p>Aucun produit trouvé.</p></div></div>
 
-  <p class="footer-note" id="footerNote"></p>
+  <p class="footer-note" id="footerNote">Mode gestion actif — pensez à télécharger le fichier à jour depuis les réglages pour publier vos changements sur GitHub.</p>
 </div>
 
-<div id="modalRoot"></div>
+<div id="modalRoot"><div class="overlay" id="modalOverlay"><div class="modal"><h2>Réglages de la boutique</h2><form id="settingsForm"><div class="field"><label>Nom de la boutique</label><input type="text" id="setBoutique" value="Sybc's shop" required=""></div><div class="field"><label>Phrase d'accroche</label><input type="text" id="setTagline" value="La ref de vos accessoires stylés "></div><div class="field"><label>Numéro WhatsApp (avec indicatif, ex: 237600000000)</label><input type="text" id="setWa" value="688630287"></div><div class="field"><label>Devise (ex: FCFA, €, $)</label><input type="text" id="setCurr" value="FCFA"></div><hr style="border:none; border-top:1px solid var(--line-on-light); margin:18px 0;"><div class="field"><label>Publier les changements</label></div><p class="helptext">Téléchargez le fichier HTML mis à jour et remplacez votre <code>index.html</code> sur GitHub Pages.</p><button type="button" class="btn" id="btnExport" style="width:100%; margin-bottom:14px;">📥 Télécharger le fichier à jour</button><div class="modal-actions"><button type="button" class="btn" id="btnCloseModal">Fermer</button><button type="submit" class="btn primary">Enregistrer</button></div></form></div></div></div>
 <div id="toastRoot"></div>
 
 <script>
 var ADMIN_PASSWORD = "7KJB8bnw";
 
 var DEFAULT_DATA = {
-  settings: {
-    boutiqueName: "Ma Boutique",
-    tagline: "Ajoutez une phrase d'accroche dans les réglages.",
-    whatsapp: "",
-    currency: "FCFA"
+  "settings": {
+    "boutiqueName": "Sybc's shop",
+    "tagline": "La ref de vos accessoires stylés ",
+    "whatsapp": "688630287",
+    "currency": "FCFA"
   },
-  products: []
+  "products": []
 };
 
 (function () {
@@ -533,5 +532,6 @@ var DEFAULT_DATA = {
   render();
 })();
 </script>
-</body>
-</html>
+
+
+</body></html>
