@@ -1,0 +1,276 @@
+        waBtn.href = 'https://wa.me/' + state.settings.whatsapp.replace(/[^0-9]/g, '');
+        waBtn.target = '_blank';
+        el.appendChild(waBtn);
+      }
+    }
+  }
+
+  function renderFilters() {
+    var el = document.getElementById('filterBar');
+    var categories = ['Tous', 'Promotions'].concat(distinctCategories());
+    el.innerHTML = '';
+    categories.forEach(function (cat) {
+      var btn = document.createElement('button');
+      btn.className = 'pill' + (activeCategory === cat ? ' active' : '');
+      btn.textContent = cat;
+      btn.onclick = function () { activeCategory = cat; render(); };
+      el.appendChild(btn);
+    });
+  }
+
+  function renderGrid() {
+    var el = document.getElementById('grid');
+    var list = filteredProducts();
+    el.innerHTML = '';
+
+    if (list.length === 0) {
+      el.innerHTML = '<div class="empty" style="grid-column: 1/-1;"><p>Aucun produit trouvé.</p></div>';
+      return;
+    }
+
+    list.forEach(function (p) {
+      var card = document.createElement('div');
+      card.className = 'card' + (p.oos ? ' oos' : '');
+
+      var badges = '';
+      if (p.oos) badges += '<span class="badge oos">Rupture</span>';
+      else {
+        if (p.isNew) badges += '<span class="badge new">Nouveau</span>';
+        if (p.promo) badges += '<span class="badge promo">Promo</span>';
+      }
+
+      var photoHtml = p.imageUrl
+        ? '<img src="' + escapeHtml(p.imageUrl) + '" alt="' + escapeHtml(p.name) + '" loading="lazy">'
+        : '<span>Pas d\'image</span>';
+
+      var priceHtml = '';
+      if (p.promo && p.promoPrice) {
+        priceHtml = '<span class="price">' + escapeHtml(formatPrice(p.promoPrice)) + '</span>' +
+                    '<span class="price-old">' + escapeHtml(formatPrice(p.price)) + '</span>';
+      } else if (p.price) {
+        priceHtml = '<span class="price">' + escapeHtml(formatPrice(p.price)) + '</span>';
+      }
+
+      var link = waLink(p);
+      var waBtnHtml = link && !p.oos
+        ? '<a href="' + link + '" target="_blank" class="wa-btn">Commander</a>'
+        : '<button class="wa-btn" aria-disabled="true" disabled>' + (p.oos ? 'Indisponible' : 'Commander') + '</button>';
+
+      var editBtns = canEdit
+        ? '<div class="edit-mini">' +
+            '<button class="mini-btn" data-edit="' + p.id + '">✏️</button>' +
+            '<button class="mini-btn" data-del="' + p.id + '">🗑️</button>' +
+          '</div>'
+        : '';
+
+      card.innerHTML =
+        '<div class="card-photo">' + photoHtml + '<div class="badges">' + badges + '</div></div>' +
+        '<div class="card-body">' +
+          (p.category ? '<span class="card-cat">' + escapeHtml(p.category) + '</span>' : '') +
+          '<h3 class="card-name">' + escapeHtml(p.name) + '</h3>' +
+          (p.description ? '<p class="card-desc">' + escapeHtml(p.description) + '</p>' : '') +
+          '<div class="price-row">' + priceHtml + '</div>' +
+          '<div class="card-actions">' + waBtnHtml + editBtns + '</div>' +
+        '</div>';
+
+      if (canEdit) {
+        var editBtn = card.querySelector('[data-edit]');
+        var delBtn = card.querySelector('[data-del]');
+        if (editBtn) editBtn.onclick = function () { openProductModal(p); };
+        if (delBtn) delBtn.onclick = function () { deleteProduct(p.id); };
+      }
+
+      el.appendChild(card);
+    });
+
+    if (canEdit) {
+      var fab = document.createElement('button');
+      fab.className = 'fab';
+      fab.innerHTML = '+';
+      fab.setAttribute('aria-label', 'Ajouter un produit');
+      fab.onclick = function () { openProductModal(); };
+      el.appendChild(fab);
+    }
+  }
+
+  function deleteProduct(id) {
+    if (!confirm('Voulez-vous vraiment supprimer ce produit ?')) return;
+    state.products = state.products.filter(function (p) { return p.id !== id; });
+    saveLocal();
+    render();
+    showToast('Produit supprimé');
+  }
+
+  function openLoginModal() {
+    var modalHtml =
+      '<div class="overlay" id="modalOverlay">' +
+        '<div class="modal">' +
+          '<h2>Administration</h2>' +
+          '<form id="loginForm">' +
+            '<div class="field">' +
+              '<label>Mot de passe</label>' +
+              '<input type="password" id="passInput" required placeholder="Entrez le mot de passe">' +
+            '</div>' +
+            '<div class="modal-actions">' +
+              '<button type="button" class="btn" id="btnCloseModal">Annuler</button>' +
+              '<button type="submit" class="btn primary">Connexion</button>' +
+            '</div>' +
+          '</form>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('modalRoot').innerHTML = modalHtml;
+    document.getElementById('btnCloseModal').onclick = closeModal;
+    document.getElementById('loginForm').onsubmit = function (e) {
+      e.preventDefault();
+      var pass = document.getElementById('passInput').value;
+      if (pass === ADMIN_PASSWORD) {
+        canEdit = true;
+        try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (err) {}
+        closeModal();
+        render();
+        showToast('Connexion réussie !');
+      } else {
+        alert('Mot de passe incorrect.');
+      }
+    };
+  }
+
+  function openSettingsModal() {
+    var s = state.settings;
+    var modalHtml =
+      '<div class="overlay" id="modalOverlay">' +
+        '<div class="modal">' +
+          '<h2>Réglages de la boutique</h2>' +
+          '<form id="settingsForm">' +
+            '<div class="field"><label>Nom de la boutique</label><input type="text" id="setBoutique" value="' + escapeHtml(s.boutiqueName) + '" required></div>' +
+            '<div class="field"><label>Phrase d\'accroche</label><input type="text" id="setTagline" value="' + escapeHtml(s.tagline) + '"></div>' +
+            '<div class="field"><label>Numéro WhatsApp (avec indicatif, ex: 237600000000)</label><input type="text" id="setWa" value="' + escapeHtml(s.whatsapp) + '"></div>' +
+            '<div class="field"><label>Devise (ex: FCFA, €, $)</label><input type="text" id="setCurr" value="' + escapeHtml(s.currency) + '"></div>' +
+            '<hr style="border:none; border-top:1px solid var(--line-on-light); margin:18px 0;">' +
+            '<div class="field"><label>Publier les changements</label></div>' +
+            '<p class="helptext">Téléchargez le fichier HTML mis à jour et remplacez votre <code>index.html</code> sur GitHub Pages.</p>' +
+            '<button type="button" class="btn" id="btnExport" style="width:100%; margin-bottom:14px;">📥 Télécharger le fichier à jour</button>' +
+            '<div class="modal-actions">' +
+              '<button type="button" class="btn" id="btnCloseModal">Fermer</button>' +
+              '<button type="submit" class="btn primary">Enregistrer</button>' +
+            '</div>' +
+          '</form>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('modalRoot').innerHTML = modalHtml;
+    document.getElementById('btnCloseModal').onclick = closeModal;
+    document.getElementById('btnExport').onclick = exportCatalogHtml;
+    document.getElementById('settingsForm').onsubmit = function (e) {
+      e.preventDefault();
+      state.settings.boutiqueName = document.getElementById('setBoutique').value;
+      state.settings.tagline = document.getElementById('setTagline').value;
+      state.settings.whatsapp = document.getElementById('setWa').value;
+      state.settings.currency = document.getElementById('setCurr').value;
+      saveLocal();
+      closeModal();
+      render();
+      showToast('Réglages enregistrés localement');
+    };
+  }
+
+  function openProductModal(prod) {
+    var isEdit = !!prod;
+    var p = prod || { name: '', category: '', price: '', promoPrice: '', description: '', imageUrl: '', isNew: false, promo: false, oos: false };
+
+    var modalHtml =
+      '<div class="overlay" id="modalOverlay">' +
+        '<div class="modal">' +
+          '<h2>' + (isEdit ? 'Modifier le produit' : 'Nouveau produit') + '</h2>' +
+          '<form id="productForm">' +
+            '<div class="field"><label>Nom du produit</label><input type="text" id="pName" value="' + escapeHtml(p.name) + '" required></div>' +
+            '<div class="field-row">' +
+              '<div class="field"><label>Catégorie</label><input type="text" id="pCat" value="' + escapeHtml(p.category) + '" placeholder="ex: Vetements"></div>' +
+              '<div class="field"><label>Prix de base</label><input type="number" id="pPrice" value="' + (p.price || '') + '"></div>' +
+            '</div>' +
+            '<div class="field"><label>Lien de l\'image (URL)</label><input type="url" id="pImg" value="' + escapeHtml(p.imageUrl) + '" placeholder="https://..."></div>' +
+            '<div class="field"><label>Description</label><textarea id="pDesc">' + escapeHtml(p.description) + '</textarea></div>' +
+            '<div class="check-row"><input type="checkbox" id="pPromo" ' + (p.promo ? 'checked' : '') + '><label for="pPromo">En promotion</label></div>' +
+            '<div class="field" id="promoPriceRow" style="display:' + (p.promo ? 'block' : 'none') + ';"><label>Prix promotionnel</label><input type="number" id="pPromoPrice" value="' + (p.promoPrice || '') + '"></div>' +
+            '<div class="check-row"><input type="checkbox" id="pNew" ' + (p.isNew ? 'checked' : '') + '><label for="pNew">Marquer comme "Nouveau"</label></div>' +
+            '<div class="check-row"><input type="checkbox" id="pOos" ' + (p.oos ? 'checked' : '') + '><label for="pOos">Rupture de stock</label></div>' +
+            '<div class="modal-actions">' +
+              '<button type="button" class="btn" id="btnCloseModal">Annuler</button>' +
+              '<button type="submit" class="btn primary">' + (isEdit ? 'Mettre à jour' : 'Ajouter') + '</button>' +
+            '</div>' +
+          '</form>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('modalRoot').innerHTML = modalHtml;
+    document.getElementById('btnCloseModal').onclick = closeModal;
+
+    var promoCb = document.getElementById('pPromo');
+    promoCb.onchange = function () {
+      document.getElementById('promoPriceRow').style.display = promoCb.checked ? 'block' : 'none';
+    };
+
+    document.getElementById('productForm').onsubmit = function (e) {
+      e.preventDefault();
+      var updated = {
+        id: isEdit ? p.id : uid(),
+        name: document.getElementById('pName').value,
+        category: document.getElementById('pCat').value,
+        price: document.getElementById('pPrice').value,
+        imageUrl: document.getElementById('pImg').value,
+        description: document.getElementById('pDesc').value,
+        promo: document.getElementById('pPromo').checked,
+        promoPrice: document.getElementById('pPromoPrice').value,
+        isNew: document.getElementById('pNew').checked,
+        oos: document.getElementById('pOos').checked
+      };
+
+      if (isEdit) {
+        state.products = state.products.map(function (item) { return item.id === p.id ? updated : item; });
+      } else {
+        state.products.push(updated);
+      }
+
+      saveLocal();
+      closeModal();
+      render();
+      showToast(isEdit ? 'Produit modifié !' : 'Produit ajouté !');
+    };
+  }
+
+  function closeModal() {
+    document.getElementById('modalRoot').innerHTML = '';
+  }
+
+  function showToast(msg) {
+    var root = document.getElementById('toastRoot');
+    root.innerHTML = '<div class="toast">' + escapeHtml(msg) + '</div>';
+    setTimeout(function () { root.innerHTML = ''; }, 3000);
+  }
+
+  function exportCatalogHtml() {
+    var fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    var dataRegex = /var DEFAULT_DATA = \{[\s\S]*?\};/;
+    var updatedData = 'var DEFAULT_DATA = ' + JSON.stringify(state, null, 2) + ';';
+    var newHtml = fullHtml.replace(dataRegex, updatedData);
+
+    var blob = new Blob([newHtml], { type: 'text/html;charset=utf-8' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'index.html';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  document.getElementById('searchInput').oninput = function (e) {
+    searchTerm = e.target.value;
+    renderGrid();
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>
