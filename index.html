@@ -1,3 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon Catalogue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #12213E;
+    --surface: #FBF4E4;
+    --surface-2: #F1E7D2;
+    --ink: #12213E;
+    --ink-soft: #4A5875;
+    --ink-inverse: #FBF4E4;
+    --ink-inverse-soft: #C7CEE0;
+    --accent: #E4A123;
+    --accent-ink: #12213E;
+    --danger: #B23A2E;
+    --line-on-dark: rgba(251,244,228,0.16);
+    --line-on-light: rgba(18,33,62,0.14);
+    --radius: 3px;
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-body: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0A1220; --surface: #1B2740; --surface-2: #22304D;
+      --ink: #F3EEE1; --ink-soft: #B9C2D6; --ink-inverse: #F3EEE1; --ink-inverse-soft: #9AA6C0;
+      --line-on-dark: rgba(243,238,225,0.14); --line-on-light: rgba(243,238,225,0.12);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0A1220; --surface: #1B2740; --surface-2: #22304D;
+    --ink: #F3EEE1; --ink-soft: #B9C2D6; --ink-inverse: #F3EEE1; --ink-inverse-soft: #9AA6C0;
+    --line-on-dark: rgba(243,238,225,0.14); --line-on-light: rgba(243,238,225,0.12);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink-inverse); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; display: block; }
+  button { font-family: inherit; cursor: pointer; }
+  input, textarea, select { font-family: inherit; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 18px 64px; }
+  header.shop-head { padding: 36px 0 22px; border-bottom: 1px solid var(--line-on-dark); margin-bottom: 22px; }
+  .head-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .shop-name { font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 7vw, 40px); line-height: 1.05; margin: 0 0 8px; color: var(--ink-inverse); }
+  .shop-tagline { color: var(--ink-inverse-soft); font-size: 15px; line-height: 1.5; max-width: 46ch; margin: 0; }
+  .head-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line-on-dark); background: transparent; color: var(--ink-inverse); display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.15s ease; text-decoration:none; }
+  .icon-btn:hover { background: rgba(251,244,228,0.08); }
+  .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 18px; -ms-overflow-style: none; scrollbar-width: none; }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .pill { flex-shrink: 0; padding: 7px 15px; border-radius: 999px; border: 1px solid var(--line-on-dark); background: transparent; color: var(--ink-inverse-soft); font-size: 13.5px; font-weight: 500; white-space: nowrap; transition: all 0.15s ease; }
+  .pill.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .search-row { margin-bottom: 22px; }
+  .search-input { width: 100%; padding: 11px 14px; border-radius: var(--radius); border: 1px solid var(--line-on-dark); background: rgba(251,244,228,0.05); color: var(--ink-inverse); font-size: 14.5px; }
+  .search-input::placeholder { color: var(--ink-inverse-soft); }
+  .search-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--surface); color: var(--ink); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; position: relative; }
+  .card.oos { opacity: 0.62; }
+  .card-photo { width: 100%; aspect-ratio: 4/3; background: var(--surface-2); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--ink-soft); font-size: 13px; }
+  .card-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .badges { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; }
+  .badge { font-size: 11px; font-weight: 700; letter-spacing: 0.02em; padding: 4px 9px; border-radius: 999px; color: var(--ink-inverse); }
+  .badge.new { background: var(--accent-ink); color: var(--accent); border: 1px solid var(--accent); }
+  .badge.promo { background: var(--danger); }
+  .badge.oos { background: rgba(0,0,0,0.55); }
+  .card-body { padding: 13px 14px 15px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .card-cat { font-size: 11.5px; color: var(--ink-soft); }
+  .card-name { font-family: var(--font-display); font-size: 18px; font-weight: 600; line-height: 1.25; margin: 0; }
+  .card-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.45; flex: 1; }
+  .price-row { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; }
+  .price { font-size: 17px; font-weight: 700; }
+  .price-old { font-size: 13px; color: var(--ink-soft); text-decoration: line-through; }
+  .card-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .wa-btn { flex: 1; background: #1C2B4A; color: #FBF4E4; border: none; border-radius: var(--radius); padding: 10px 10px; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+  .wa-btn:hover { background: #263A63; }
+  .wa-btn[aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
+  .edit-mini { display: flex; gap: 6px; }
+  .mini-btn { width: 36px; border: 1px solid var(--line-on-light); background: transparent; border-radius: var(--radius); color: var(--ink); font-size: 14px; }
+  .mini-btn:hover { background: var(--surface-2); }
+  .empty { text-align: center; padding: 64px 20px; color: var(--ink-inverse-soft); border: 1px dashed var(--line-on-dark); border-radius: var(--radius); }
+  .empty p { margin: 0 0 16px; }
+  .fab { position: fixed; bottom: 22px; right: 22px; width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); border: none; font-size: 26px; font-weight: 400; box-shadow: 0 6px 18px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 40; }
+  .overlay { position: fixed; inset: 0; background: rgba(10,15,25,0.6); display: flex; align-items: flex-end; justify-content: center; z-index: 100; padding: 0; }
+  @media (min-width: 640px) { .overlay { align-items: center; padding: 20px; } }
+  .modal { background: var(--surface); color: var(--ink); width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; border-radius: 14px 14px 0 0; padding: 22px 20px 28px; }
+  @media (min-width: 640px) { .modal { border-radius: var(--radius); } }
+  .modal h2 { font-family: var(--font-display); font-size: 22px; margin: 0 0 18px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+  .field input, .field textarea, .field select { width: 100%; padding: 10px 11px; border: 1px solid var(--line-on-light); border-radius: var(--radius); background: transparent; color: var(--ink); font-size: 14.5px; }
+  .field textarea { resize: vertical; min-height: 64px; }
+  .field-row { display: flex; gap: 10px; }
+  .field-row .field { flex: 1; }
+  .check-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .check-row input { width: auto; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn { flex: 1; padding: 12px; border-radius: var(--radius); border: 1px solid var(--line-on-light); background: transparent; color: var(--ink); font-size: 14.5px; font-weight: 600; }
+  .btn.primary { background: #1C2B4A; color: #FBF4E4; border-color: #1C2B4A; }
+  .btn.danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+  .helptext { font-size: 12px; color: var(--ink-soft); margin-top: -8px; margin-bottom: 14px; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1C2B4A; color: #FBF4E4; padding: 11px 18px; border-radius: 999px; font-size: 13.5px; z-index: 200; box-shadow: 0 6px 16px rgba(0,0,0,0.3); max-width: 90vw; text-align:center; }
+  .admin-bar { background: var(--accent); color: var(--accent-ink); font-size: 12.5px; font-weight: 600; text-align: center; padding: 7px 10px; }
+  .admin-bar button { background: none; border: none; color: var(--accent-ink); font-weight: 700; text-decoration: underline; margin-left: 8px; font-size: 12.5px; }
+  .footer-note { text-align: center; font-size: 12px; color: var(--ink-inverse-soft); margin-top: 36px; }
+</style>
+</head>
+<body>
+
+<div id="adminBar"></div>
+
+<div class="wrap">
+  <header class="shop-head">
+    <div class="head-row">
+      <div>
+        <h1 class="shop-name" id="shopName">Ma Boutique</h1>
+        <p class="shop-tagline" id="shopTagline"></p>
+      </div>
+      <div class="head-actions" id="headActions"></div>
+    </div>
+  </header>
+
+  <div id="filterBar" class="filter-bar"></div>
+  <div class="search-row">
+    <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un produit...">
+  </div>
+
+  <div id="grid" class="grid"></div>
+
+  <p class="footer-note" id="footerNote"></p>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+var ADMIN_PASSWORD = "changeMoi123";
+
+var DEFAULT_DATA = {
+  settings: {
+    boutiqueName: "Ma Boutique",
+    tagline: "Ajoutez une phrase d'accroche dans les réglages.",
+    whatsapp: "",
+    currency: "FCFA"
+  },
+  products: []
+};
+
+(function () {
+  var STORAGE_KEY = 'boutique-catalog-data';
+  var SESSION_KEY = 'boutique-catalog-admin';
+  var state = loadState();
+  var canEdit = false;
+  try { canEdit = sessionStorage.getItem(SESSION_KEY) === '1'; } catch (e) {}
+  var activeCategory = 'Tous';
+  var searchTerm = '';
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return JSON.parse(JSON.stringify(DEFAULT_DATA));
+  }
+
+  function saveLocal() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function uid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function formatPrice(n) {
+    if (n === null || n === undefined || n === '') return '';
+    var num = Number(n);
+    if (isNaN(num)) return '';
+    return num.toLocaleString('fr-FR') + ' ' + (state.settings.currency || '');
+  }
+
+  function waLink(product) {
+    var raw = (state.settings.whatsapp || '').replace(/[^0-9]/g, '');
+    if (!raw) return null;
+    var price = product.promo && product.promoPrice ? product.promoPrice : product.price;
+    var msg = "Bonjour, je suis intéressé(e) par \"" + product.name + "\"" +
+      (price ? " (" + formatPrice(price) + ")" : "") + ". Est-il disponible ?";
+    return 'https://wa.me/' + raw + '?text=' + encodeURIComponent(msg);
+  }
+
+  function distinctCategories() {
+    var set = {};
+    state.products.forEach(function (p) { if (p.category) set[p.category] = true; });
+    return Object.keys(set).sort();
+  }
+
+  function filteredProducts() {
+    return state.products.filter(function (p) {
+      if (activeCategory === 'Promotions' && !p.promo) return false;
+      if (activeCategory !== 'Tous' && activeCategory !== 'Promotions' && p.category !== activeCategory) return false;
+      if (searchTerm) {
+        var hay = (p.name + ' ' + (p.description || '')).toLowerCase();
+        if (hay.indexOf(searchTerm.toLowerCase()) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function render() {
+    document.title = state.settings.boutiqueName || 'Mon Catalogue';
+    document.getElementById('shopName').textContent = state.settings.boutiqueName || 'Ma Boutique';
+    document.getElementById('shopTagline').textContent = state.settings.tagline || '';
+    renderAdminBar();
+    renderHeadActions();
+    renderFilters();
+    renderGrid();
+    document.getElementById('footerNote').textContent = canEdit
+      ? "Mode gestion actif — pensez à télécharger le fichier à jour depuis les réglages pour publier vos changements sur GitHub."
+      : '';
+  }
+
+  function renderAdminBar() {
+    var el = document.getElementById('adminBar');
+    if (!canEdit) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div class="admin-bar">Mode gestion actif <button id="btnLogout">Se déconnecter</button></div>';
+    document.getElementById('btnLogout').onclick = function () {
+      try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+      canEdit = false;
+      render();
+    };
+  }
+
+  function renderHeadActions() {
+    var el = document.getElementById('headActions');
+    el.innerHTML = '';
+    if (canEdit) {
+      var settingsBtn = document.createElement('button');
+      settingsBtn.className = 'icon-btn';
+      settingsBtn.innerHTML = '⚙';
+      settingsBtn.setAttribute('aria-label', 'Réglages de la boutique');
+      settingsBtn.onclick = openSettingsModal;
+      el.appendChild(settingsBtn);
+    } else {
+      var loginBtn = document.createElement('button');
+      loginBtn.className = 'icon-btn';
+      loginBtn.innerHTML = '⚙';
+      loginBtn.setAttribute('aria-label', 'Gérer ma boutique');
+      loginBtn.onclick = openLoginModal;
+      el.appendChild(loginBtn);
+      if (state.settings.whatsapp) {
+        var waBtn = document.createElement('a');
+        waBtn.className = 'icon-btn';
+        waBtn.innerHTML = '☎';
+        waBtn.setAttribute('aria-label', 'Contacter sur WhatsApp');
         waBtn.href = 'https://wa.me/' + state.settings.whatsapp.replace(/[^0-9]/g, '');
         waBtn.target = '_blank';
         el.appendChild(waBtn);
